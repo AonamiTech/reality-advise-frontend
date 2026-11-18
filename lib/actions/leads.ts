@@ -1,0 +1,174 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import { assignLeadAsAdmin, createLead, setLeadStatus, splitLeadAsAdmin, transferLeadAsAdmin, type NewLead } from "@/lib/admin";
+import { authedRequest } from "@/lib/api";
+import { assignLeadAsManager, createLeadAsManager, splitLeadAsManager, transferLeadAsManager } from "@/lib/manager";
+import { setMyLeadStatus } from "@/lib/executive";
+import { echo, str, toFormState } from "@/lib/forms";
+import type { FieldErrors, FormState, Lead, LeadFollowUp, Role } from "@/lib/types";
+
+const AREA: Record<Role, string> = { ADMIN: "admin", MANAGER: "manager", EXECUTIVE: "executive" };
+
+const FIELDS = ["name", "mobile", "email", "propertyName", "source", "budget", "message", "requirement", "enquiryType", "executiveId"];
+
+async function createLeadFor(role: "ADMIN" | "MANAGER", formData: FormData): Promise<FormState> {
+  const values = echo(formData, FIELDS);
+  const budgetRaw = values.budget.replace(/[,\s]/g, "");
+  if (budgetRaw && !/^\d+(\.\d+)?$/.test(budgetRaw)) {
+    return { status: "error", fieldErrors: { budget: "Enter the budget in rupees, numbers only" }, values };
+  }
+  const body: NewLead = {
+    name: values.name,
+    mobile: values.mobile,
+    propertyName: values.propertyName,
+    source: values.source,
+  };
+  if (values.email) body.email = values.email;
+  if (budgetRaw) body.budget = Number(budgetRaw);
+  if (values.requirement) body.requirement = values.requirement;
+  if (values.enquiryType) body.enquiryType = values.enquiryType;
+  if (values.message) body.message = values.message;
+  if (role === "MANAGER") {
+    if (!values.executiveId) return { status: "error", fieldErrors: { executiveId: "Choose an executive" }, values };
+    body.executiveId = values.executiveId;
+  }
+
+  let id: string;
+  try {
+    id = (await (role === "ADMIN" ? createLead : createLeadAsManager)(body)).id;
+  } catch (error) {
+    return toFormState(error, values);
+  }
+
+  revalidatePath(`/${AREA[role]}`, "layout");
+  redirect(`/${AREA[role]}/leads/${id}?created=1`);
+}
+
+export async function createLeadAction(_prev: FormState, formData: FormData): Promise<FormState> {
+  return createLeadFor("ADMIN", formData);
+}
+
+export async function createManagerLeadAction(_prev: FormState, formData: FormData): Promise<FormState> {
+  return createLeadFor("MANAGER", formData);
+}
+
+export async function updateLeadStatusAction(id: string, _prev: FormState, formData: FormData): Promise<FormState> {
+  const status = str(formData, "status");
+  try {
+    await setLeadStatus(id, status);
+  } catch (error) {
+    return toFormState(error);
+  }
+  revalidatePath("/admin", "layout");
+  return { status: "success", message: "Status updated." };
+}
+
+export async function updateMyLeadStatusAction(id: string, _prev: FormState, formData: FormData): Promise<FormState> {
+  try {
+    await setMyLeadStatus(id, str(formData, "status"));
+  } catch (error) {
+    return toFormState(error);
+  }
+  revalidatePath("/executive", "layout");
+  return { status: "success", message: "Status updated." };
+}
+
+/** Long-press / star toggle. Saved per user on the server; both calls are idempotent. */
+export async function setImportantAction(
+  role: Role,
+  id: string,
+  important: boolean,
+): Promise<{ ok: true; isImportant: boolean } | { ok: false; message: string }> {
+  try {
+    const lead = await authedRequest<Lead>(role, `/${AREA[role]}/leads/${encodeURIComponent(id)}/important`, {
+      method: important ? "POST" : "DELETE",
+    });
+    return { ok: true, isImportant: lead.isImportant };
+  } catch (error) {
+    const state = toFormState(error);
+    return { ok: false, message: state.message ?? "Couldn't update. Try again." };
+  }
+}
+
+export async function assignLeadAction(role: "ADMIN" | "MANAGER", id: string, _prev: FormState, formData: FormData): Promise<FormState> {
+  const executiveId = str(formData, "executiveId");
+  if (!executiveId) return { status: "error", fieldErrors: { executiveId: "Choose an executive" } };
+  try {
+    await (role === "ADMIN" ? assignLeadAsAdmin : assignLeadAsManager)(id, executiveId);
+  } catch (error) {
+    return toFormState(error);
+  }
+  revalidatePath(`/${AREA[role]}`, "layout");
+  return { status: "success", message: "Lead assigned." };
+}
+
+function ownershipValues(formData: FormData) {
+  return { targetExecutiveId: str(formData, "targetExecutiveId"), reason: str(formData, "reason") };
+}
+
+export async function transferLeadAction(role: "ADMIN" | "MANAGER", id: string, _prev: FormState, formData: FormData): Promise<FormState> {
+  const values = ownershipValues(formData);
+  if (!values.targetExecutiveId) return { status: "error", fieldErrors: { targetExecutiveId: "Choose an executive" }, values };
+  try {
+    await (role === "ADMIN" ? transferLeadAsAdmin : transferLeadAsManager)(id, values.targetExecutiveId, values.reason);
+  } catch (error) {
+    return toFormState(error, values);
+  }
+  revalidatePath(`/${AREA[role]}/leads/${id}`);
+  revalidatePath(`/${AREA[role]}/leads`, "layout");
+  return { status: "success", message: "Lead transferred." };
+}
+
+export async function splitLeadAction(role: "ADMIN" | "MANAGER", id: string, _prev: FormState, formData: FormData): Promise<FormState> {
+  const values = ownershipValues(formData);
+  if (!values.targetExecutiveId) return { status: "error", fieldErrors: { targetExecutiveId: "Choose an executive" }, values };
+  try {
+    await (role === "ADMIN" ? splitLeadAsAdmin : splitLeadAsManager)(id, values.targetExecutiveId, values.reason);
+  } catch (error) {
+    return toFormState(error, values);
+  }
+  revalidatePath(`/${AREA[role]}/leads/${id}`);
+  revalidatePath(`/${AREA[role]}/leads`, "layout");
+  return { status: "success", message: "Enquiry split." };
+}
+
+type FollowUpResult = { ok: true; followUp: LeadFollowUp | null } | { ok: false; message: string; fieldErrors?: FieldErrors };
+
+function followUpFailure(error: unknown): FollowUpResult {
+  const state = toFormState(error);
+  return { ok: false, message: state.message ?? "Couldn't update the follow-up. Try again.", fieldErrors: state.fieldErrors };
+}
+
+/** Schedules, changes or (with `at: null`) clears the lead's follow-up. `at` must be an ISO instant with an offset. */
+export async function setFollowUpAction(role: Role, id: string, at: string | null, note: string | null): Promise<FollowUpResult> {
+  const path = `/${AREA[role]}/leads/${encodeURIComponent(id)}/follow-up`;
+  try {
+    const lead = await authedRequest<Lead>(role, path, { method: "PUT", body: { followUpAt: at, followUpNote: note } });
+    revalidatePath(`/${AREA[role]}`, "layout");
+    return { ok: true, followUp: lead.followUp };
+  } catch (error) {
+    return followUpFailure(error);
+  }
+}
+
+export async function clearFollowUpAction(role: Role, id: string): Promise<FollowUpResult> {
+  try {
+    const lead = await authedRequest<Lead>(role, `/${AREA[role]}/leads/${encodeURIComponent(id)}/follow-up`, { method: "DELETE" });
+    revalidatePath(`/${AREA[role]}`, "layout");
+    return { ok: true, followUp: lead.followUp };
+  } catch (error) {
+    return followUpFailure(error);
+  }
+}
+
+/** Fresh follow-up, fetched when the edit dialog opens because someone else may have changed it. */
+export async function getFollowUpAction(role: Role, id: string): Promise<FollowUpResult> {
+  try {
+    const lead = await authedRequest<Lead>(role, `/${AREA[role]}/leads/${encodeURIComponent(id)}`);
+    return { ok: true, followUp: lead.followUp };
+  } catch (error) {
+    return followUpFailure(error);
+  }
+}
