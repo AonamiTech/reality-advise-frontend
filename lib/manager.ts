@@ -7,7 +7,7 @@ import { buildTransferRequest, ownershipPath } from "./lead-ownership";
 
 const m = <T>(path: string, options?: Parameters<typeof authedRequest>[2]) => authedRequest<T>("MANAGER", path, options);
 
-export const listManagerExecutives = () => m<Executive[]>("/manager/executives");
+export const listManagerExecutives = (filters: { isActive?: string } = {}) => m<Executive[]>("/manager/executives", { query: filters });
 
 export type ManagerLeadFilters = {
   status?: string;
