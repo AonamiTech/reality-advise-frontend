@@ -24,7 +24,7 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
       offset: String((query.page - 1) * PAGE),
     }),
     listProperties(),
-    listExecutives(),
+    listExecutives({ isActive: "true" }),
   ]);
 
   return (

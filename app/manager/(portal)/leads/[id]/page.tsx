@@ -25,7 +25,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ManagerLeadPage({ params, searchParams }: Props) {
   const [{ id }, { created }] = await Promise.all([params, searchParams]);
-  const [lead, executives, notificationList] = await Promise.all([load(id), listManagerExecutives(), listNotificationsAction("MANAGER", "200")]);
+  const [lead, executives, notificationList] = await Promise.all([load(id), listManagerExecutives({ isActive: "true" }), listNotificationsAction("MANAGER", "200")]);
   const whatsappMessage = notificationList.notifications.find((notification) => notification.type === "LEAD_CREATED" && notification.entityId === lead.id)?.message;
   return (
     <>

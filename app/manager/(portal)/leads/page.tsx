@@ -22,7 +22,7 @@ export default async function ManagerLeadsPage({ searchParams }: { searchParams:
       limit: String(PAGE + 1),
       offset: String((query.page - 1) * PAGE),
     }),
-    listManagerExecutives(),
+    listManagerExecutives({ isActive: "true" }),
   ]);
 
   return (
