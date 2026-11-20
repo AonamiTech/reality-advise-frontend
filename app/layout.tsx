@@ -13,6 +13,11 @@ export const metadata: Metadata = {
   applicationName: "Realty Adwise",
   // Private, signed-in portal: nothing here should be indexed. robots.ts says the same to crawlers.
   robots: { index: false, follow: false, nocache: true, googleBot: { index: false, follow: false } },
+  icons: {
+    icon: "/ralogo.png",
+    shortcut: "/ralogo.png",
+    apple: "/ralogo.png",
+  },
   appleWebApp: { capable: true, title: "Realty Adwise", statusBarStyle: "default" },
   formatDetection: { telephone: false },
 };

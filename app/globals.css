@@ -314,8 +314,17 @@
   .result-count { font-size: 13px; }
 
   /* tables */
-  .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
-  .recent-leads-wrap { overflow-x: hidden; }
+  .table-wrap {
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+  }
+  .recent-leads-wrap { overflow-x: auto; }
   .recent-leads-table { table-layout: fixed; }
   .recent-leads-table th, .recent-leads-table td { overflow-wrap: anywhere; }
   .recent-leads-table th:first-child { width: 28%; }
