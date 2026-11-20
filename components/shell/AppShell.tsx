@@ -96,7 +96,7 @@ function LogoutButton({ rail, role }: { rail?: boolean; role: SessionUser["role"
 
 function Mark() {
   return (
-    <span className="grid size-9 shrink-0 place-items-center overflow-hidden rounded-lg bg-white p-0.5 shadow-sm" aria-hidden="true"><img src="/ralogo.png" alt="" className="h-full w-full object-contain" /></span>
+    <span className="grid size-10 shrink-0 place-items-center overflow-hidden rounded-lg bg-white p-0.5 shadow-sm" aria-hidden="true"><img src="/ralogo-mark.png" alt="" className="h-full w-full object-contain" /></span>
   );
 }
 
@@ -128,6 +128,7 @@ function Shell({ user, children }: { user: SessionUser; children: React.ReactNod
   const canAccessManager = user.role === "MANAGER";
   const items = user.role === "ADMIN" ? NAV.ADMIN : user.role === "MANAGER" && canAccessAdmin ? [...NAV.ADMIN, ...NAV.MANAGER] : canAccessManager ? NAV.MANAGER : NAV.EXECUTIVE;
   const primary = items.filter((i) => i.primary);
+  const mobilePrimary = user.role === "MANAGER" && canAccessAdmin ? NAV.ADMIN.filter((i) => i.primary) : primary;
   const current = [...items].reverse().find((i) => isActive(i, pathname));
 
   return (
@@ -226,7 +227,7 @@ function Shell({ user, children }: { user: SessionUser; children: React.ReactNod
       {/* Mobile bottom navigation */}
       <nav aria-label="Primary" className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-surface pb-[env(safe-area-inset-bottom)] sm:hidden">
         <ul className="mx-auto flex max-w-lg">
-          {primary.map((item) => {
+          {mobilePrimary.map((item) => {
             const active = isActive(item, pathname);
             return (
               <li key={item.href} className="min-w-0 flex-1">

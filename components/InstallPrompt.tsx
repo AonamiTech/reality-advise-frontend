@@ -75,7 +75,7 @@ export function InstallPrompt() {
       className="fixed inset-x-3 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-40 rounded-xl border border-border bg-surface-elevated p-3.5 shadow-lg sm:hidden"
     >
       <div className="flex items-start gap-3">
-        <span aria-hidden="true" className="grid size-10 shrink-0 place-items-center overflow-hidden rounded-lg bg-white p-0.5 shadow-sm"><img src="/ralogo.png" alt="" className="h-full w-full object-contain" /></span>
+        <span aria-hidden="true" className="grid size-12 shrink-0 place-items-center overflow-hidden rounded-lg bg-white p-0.5 shadow-sm"><img src="/ralogo-mark.png" alt="" className="h-full w-full object-contain" /></span>
         <div className="min-w-0 flex-1">
           <p className="text-sm font-medium">Install Realty Adwise</p>
           <p className="text-[13px] text-muted-foreground">Open it from your home screen, like an app.</p>

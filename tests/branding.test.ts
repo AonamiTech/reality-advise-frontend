@@ -7,6 +7,7 @@ const root = process.cwd();
 
 test("Realty Adwise uses the logo for browser and installed-app icons", () => {
   assert.equal(existsSync(resolve(root, "public/ralogo.png")), true);
+  assert.equal(existsSync(resolve(root, "public/ralogo-mark.png")), true);
   assert.equal(existsSync(resolve(root, "app/icon.png")), true);
   assert.equal(existsSync(resolve(root, "app/apple-icon.png")), true);
   assert.equal(existsSync(resolve(root, "app/icon.tsx")), false);
@@ -23,10 +24,16 @@ test("Realty Adwise uses the logo for browser and installed-app icons", () => {
 test("in-app branding uses the visible square logo", () => {
   for (const file of ["components/shell/AppShell.tsx", "components/AuthLayout.tsx", "components/InstallPrompt.tsx"]) {
     const source = readFileSync(resolve(root, file), "utf8");
-    assert.match(source, /\/ralogo\.png/);
+    assert.match(source, /\/ralogo-mark\.png/);
     assert.doesNotMatch(source, /\/ra\.png/);
   }
 
   const shell = readFileSync(resolve(root, "components/shell/AppShell.tsx"), "utf8");
   assert.match(shell, />Realty Adwise</);
+});
+
+test("admin-enabled managers get a compact mobile navigation", () => {
+  const shell = readFileSync(resolve(root, "components/shell/AppShell.tsx"), "utf8");
+  assert.match(shell, /const mobilePrimary = user\.role === "MANAGER" && canAccessAdmin \? NAV\.ADMIN\.filter/);
+  assert.match(shell, /mobilePrimary\.map\(\(item\) =>/);
 });
