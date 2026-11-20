@@ -51,8 +51,21 @@ export const deleteExecutive = (id: string) => a<unknown>(`/admin/executives/${e
 
 export type PropertyFilters = { assigned?: string; isActive?: string; search?: string };
 export type PropertyChanges = { name?: string; description?: string | null; location?: string | null };
+export type NewProperty = {
+  name: string;
+  description?: string;
+  location?: string;
+  transactionType: "RENT_LEASE" | "SALE_PURCHASE";
+  propertyType: "RESIDENTIAL" | "COMMERCIAL";
+  minPrice?: number;
+  maxPrice?: number;
+  currency: "INR";
+  executiveIds?: string[];
+};
 
 export const listProperties = (filters: PropertyFilters = {}) => a<Property[]>("/admin/properties", { query: filters });
+
+export const createProperty = (body: NewProperty) => a<Property>("/admin/properties", { method: "POST", body });
 
 export const getProperty = cache((id: string, filters: { limit?: string; offset?: string } = {}) => a<PropertyDetail>(`/admin/properties/${enc(id)}`, { query: filters }));
 

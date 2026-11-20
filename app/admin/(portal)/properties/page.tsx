@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Plus } from "lucide-react";
 import { StatusBadge } from "@/components/StatusBadge";
 import { listProperties } from "@/lib/admin";
 
@@ -20,12 +21,13 @@ export default async function PropertiesPage({ searchParams }: { searchParams: S
         <div>
           <h1>Properties</h1>
         </div>
-        <Link className="btn btn-line" href="/admin/properties?assigned=false">
-          Needing assignment
-        </Link>
+        <div className="flex gap-2">
+          <Link className="btn btn-line" href="/admin/properties?assigned=false">Needing assignment</Link>
+          <Link className="btn btn-solid" href="/admin/properties/new"><Plus className="size-4" /> New property</Link>
+        </div>
       </div>
 
-      <p className="muted">Properties are created automatically from leads. Open one to choose its executives.</p>
+      <p className="muted">Create properties manually or open one to manage its executives.</p>
 
       <form className="filters" method="get" role="search">
         <div className="field">
