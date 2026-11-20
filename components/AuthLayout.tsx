@@ -11,7 +11,7 @@ export function AuthLayout({ eyebrow, title, lede, children }: Props) {
   return (
     <div className="auth">
       <aside className="auth-side">
-        <p className="auth-brand"><img src="/ra.png" alt="Realty Adwise" className="h-16 w-48 object-contain object-left" /></p>
+        <p className="auth-brand"><span className="grid size-16 shrink-0 place-items-center overflow-hidden rounded-xl bg-white p-1 shadow-sm"><img src="/ralogo-mark.png" alt="" className="h-full w-full object-contain" /></span><span>Realty Adwise</span></p>
         <div>
           <p className="eyebrow">{eyebrow}</p>
           <h1>{title}</h1>

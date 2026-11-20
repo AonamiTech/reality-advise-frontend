@@ -192,6 +192,11 @@
   p { margin: 0; }
   strong { font-weight: 600; }
   .muted { color: var(--muted-foreground); }
+  .aonami-credit { color: #000; }
+  :root[data-theme="dark"] .aonami-credit { color: #fff; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .aonami-credit { color: #fff; }
+  }
   .eyebrow { font: 500 12px/1.4 var(--f-body), sans-serif; color: var(--muted-foreground); margin: 0 0 4px; }
   .label { font: 500 13px/1.4 var(--f-body), sans-serif; color: var(--foreground); }
 
@@ -347,7 +352,7 @@
     .recent-leads-table tbody { display: grid; gap: 8px; }
     .recent-leads-table tr { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 3px 12px; padding: 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); }
     .recent-leads-table td { padding: 0; border: 0; }
-    .recent-leads-table td:first-child { grid-column: 1; min-width: 0; }
+    .recent-leads-table td:first-child { grid-column: 1; width: 100%; min-width: 0; max-width: none; }
     .recent-leads-table td:nth-child(4) { grid-column: 2; grid-row: 1; align-self: start; }
     .recent-leads-table td .person-name { display: inline; white-space: normal; overflow-wrap: anywhere; }
     .recent-leads-table .person-sub { margin-top: 4px; }
