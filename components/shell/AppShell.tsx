@@ -156,16 +156,16 @@ function Shell({ user, children }: { user: SessionUser; children: React.ReactNod
         <nav aria-label="Main" className="min-h-0 flex-1 overflow-y-auto p-3">
           <NavList items={items} pathname={pathname} rail />
         </nav>
+        <div className="hidden w-full items-center gap-2 pb-3 lg:flex lg:justify-start lg:pl-3">
+          <img src="/logo.png" alt="" className="size-7 rounded-full bg-white object-contain" />
+          <span className="aonami-credit text-sm font-semibold">Built by Aonami</span>
+        </div>
         <div className="grid gap-1 border-t border-border p-3">
           <div className="mb-1 flex items-center justify-center gap-2.5 lg:justify-start lg:px-1">
             <Avatar name={user.name} />
             <span className="sr-only lg:not-sr-only lg:min-w-0 lg:flex-1">
               <span className="block truncate text-sm font-medium">{user.name}</span>
               <span className="block truncate text-xs text-muted-foreground">{user.email}</span>
-              <span className="mt-1 flex items-center gap-1.5 lg:justify-start">
-                <img src="/logo.png" alt="" className="size-6 rounded-full bg-white object-contain" />
-                <span className="aonami-credit text-xs font-semibold">Built by Aonami</span>
-              </span>
             </span>
           </div>
           <LogoutButton rail role={user.role} />
@@ -186,16 +186,16 @@ function Shell({ user, children }: { user: SessionUser; children: React.ReactNod
                 <nav aria-label="Menu">
                   <NavList items={items} pathname={pathname} onNavigate />
                 </nav>
+                <div className="flex w-full items-center gap-2 pb-1 pl-3">
+                  <img src="/logo.png" alt="" className="size-8 rounded-full bg-white object-contain" />
+                  <span className="aonami-credit text-sm font-semibold">Built by Aonami</span>
+                </div>
                 <div className="grid gap-1 border-t border-border pt-4">
                   <div className="mb-1 flex items-center gap-2.5 px-1">
                     <Avatar name={user.name} />
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-medium">{user.name}</span>
-                      <span className="block truncate text-xs text-muted-foreground">{user.email}</span>
-                          <span className="mt-1 flex items-center gap-1.5">
-                            <img src="/logo.png" alt="" className="size-7 rounded-full bg-white object-contain" />
-                            <span className="aonami-credit text-xs font-semibold">Built by Aonami</span>
-                          </span>
+                          <span className="block truncate text-sm font-medium">{user.name}</span>
+                          <span className="block truncate text-xs text-muted-foreground">{user.email}</span>
                     </span>
                     <ThemeToggle tip="tip-left" />
                   </div>
