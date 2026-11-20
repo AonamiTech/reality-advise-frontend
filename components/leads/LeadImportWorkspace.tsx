@@ -42,6 +42,7 @@ function downloadTemplate() {
 export function LeadImportWorkspace() {
   const [file, setFile] = useState<File | null>(null);
   const [importData, setImportData] = useState<LeadImport | null>(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -73,14 +74,18 @@ export function LeadImportWorkspace() {
     setMessage(null);
     startTransition(async () => {
       const result = await uploadLeadImportAction(body);
-      if (result.ok) setImportData(result.import);
+      if (result.ok) {
+        setImportData(result.import);
+        if (result.import.summary.validRows > 0) setConfirmOpen(true);
+        else setMessage("No valid leads found in this file.");
+      }
       else setMessage(result.message);
     });
   }
 
   function confirm() {
     if (!importData || importData.summary.validRows === 0) return;
-    if (!window.confirm(`${importData.summary.validRows} valid leads will be added.\n${importData.summary.invalidRows} invalid rows will be skipped.\n${importData.summary.duplicateRows} duplicate leads will be skipped.\n\nDo you want to continue?`)) return;
+    setConfirmOpen(false);
     setMessage(null);
     startTransition(async () => {
       const result = await confirmLeadImportAction(importData.importId);
@@ -99,18 +104,24 @@ export function LeadImportWorkspace() {
       </div>
       <section className="panel">
         <div className="flex flex-wrap items-center justify-between gap-3"><div><h2>Choose a file</h2><p className="muted text-sm">CSV or XLSX · maximum 10 MB</p></div><label className="btn btn-line cursor-pointer"><input ref={inputRef} type="file" accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" className="sr-only" onChange={(event) => choose(event.target.files?.[0])} /> Browse files</label></div>
-        <div className="mt-4 rounded-xl border border-dashed border-border-strong bg-muted/20 p-5 text-sm">{file ? <div className="flex flex-wrap items-center justify-between gap-3"><span className="font-medium">{file.name}</span><span className="text-muted-foreground">{(file.size / 1024 / 1024).toFixed(2)} MB</span></div> : <p className="text-muted-foreground">Select a file to preview and validate your leads.</p>}</div>
+        <div className="mt-4 rounded-xl border border-dashed border-border-strong bg-muted/20 p-5 text-sm">{file ? <div className="flex flex-wrap items-center justify-between gap-3"><span className="font-medium">{file.name}</span><span className="text-muted-foreground">{(file.size / 1024 / 1024).toFixed(2)} MB</span></div> : <p className="text-muted-foreground">Select a CSV or XLSX file to upload.</p>}</div>
         {message && <p className="notice notice-error mt-4" role="alert">{message}</p>}
         <div className="mt-4"><button type="button" className="btn btn-solid" onClick={upload} disabled={!file || pending}><span>{pending ? "Uploading…" : "Upload file"}</span></button></div>
       </section>
-      {importData && <ImportPreview data={importData} processing={processing} finished={finished} pending={pending} onConfirm={confirm} onErrors={() => downloadErrors(importData.rows)} onUploadAnother={() => { setFile(null); setImportData(null); setMessage(null); if (inputRef.current) inputRef.current.value = ""; }} />}
+      {importData && (processing || finished) && <ImportResult data={importData} onErrors={() => downloadErrors(importData.rows)} onUploadAnother={() => { setFile(null); setImportData(null); setConfirmOpen(false); setMessage(null); if (inputRef.current) inputRef.current.value = ""; }} />}
+      {importData && confirmOpen && <ConfirmImportDialog data={importData} pending={pending} onConfirm={confirm} onCancel={() => setConfirmOpen(false)} />}
     </div>
   );
 }
 
-function ImportPreview({ data, processing, finished, pending, onConfirm, onErrors, onUploadAnother }: { data: LeadImport; processing: boolean; finished: boolean; pending: boolean; onConfirm: () => void; onErrors: () => void; onUploadAnother: () => void }) {
+function ImportResult({ data, onErrors, onUploadAnother }: { data: LeadImport; onErrors: () => void; onUploadAnother: () => void }) {
   const summary = data.summary;
-  return <section className="panel"><div className="flex flex-wrap items-start justify-between gap-3"><div><h2>{finished ? "Import result" : "Preview"}</h2><p className="muted text-sm">Status: {data.status.replaceAll("_", " ")}{processing ? " · Checking progress…" : ""}</p></div>{data.rows.some((row) => row.status === "INVALID" || row.status === "DUPLICATE" || row.status === "FAILED") && <button type="button" className="btn btn-line btn-sm" onClick={onErrors}>Download error rows</button>}</div><div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4"><Metric label="Total rows" value={summary.totalRows} /><Metric label="Valid rows" value={summary.validRows} /><Metric label="Invalid rows" value={summary.invalidRows} /><Metric label="Duplicate rows" value={summary.duplicateRows} /></div>{finished && <div className="mt-3 grid grid-cols-3 gap-3"><Metric label="Imported" value={summary.imported ?? 0} /><Metric label="Duplicates" value={summary.duplicates ?? summary.duplicateRows} /><Metric label="Failed" value={summary.failed ?? 0} /></div>}<div className="mt-5 overflow-x-auto rounded-xl border border-border"><table className="w-full min-w-[900px] text-left text-sm"><thead><tr className="border-b border-border bg-muted/30 text-[11px] uppercase tracking-wide text-muted-foreground">{["Excel row", "Name", "Mobile", "Email", "Property", "Source", "Status", "Error message"].map((heading) => <th key={heading} className="px-3 py-3 font-semibold">{heading}</th>)}</tr></thead><tbody className="divide-y divide-border">{data.rows.map((row) => <tr key={row.excelRowNumber} className="hover:bg-muted/30"><td className="px-3 py-3 num">{row.excelRowNumber}</td><td className="px-3 py-3">{row.name ?? "—"}</td><td className="px-3 py-3">{row.mobile ?? "—"}</td><td className="px-3 py-3">{row.email ?? "—"}</td><td className="px-3 py-3">{row.property ?? "—"}</td><td className="px-3 py-3">{row.source ?? "—"}</td><td className="px-3 py-3"><span className={`rounded-full px-2 py-1 text-xs font-medium ${statusClass(row.status)}`}>{statusLabel(row.status)}</span></td><td className="max-w-64 px-3 py-3 text-destructive">{row.errorMessage ?? "—"}</td></tr>)}</tbody></table></div><div className="mt-5 flex flex-wrap gap-2">{data.status === "PREVIEW" && <button type="button" className="btn btn-solid" onClick={onConfirm} disabled={pending || summary.validRows === 0}>Confirm import</button>}{processing && <button type="button" className="btn btn-solid" disabled><span className="inline-block size-4 animate-spin rounded-full border-2 border-current border-t-transparent" /> Processing…</button>}{finished && <><Link className="btn btn-solid" href="/admin/leads">View leads</Link><button type="button" className="btn btn-line" onClick={onUploadAnother}>Upload another file</button></>}</div></section>;
+  const hasErrors = data.rows.some((row) => row.status === "INVALID" || row.status === "DUPLICATE" || row.status === "FAILED");
+  return <section className="panel"><div className="flex flex-wrap items-start justify-between gap-3"><div><h2>Import result</h2><p className="muted text-sm">Status: {data.status.replaceAll("_", " ")}{data.status === "PROCESSING" ? " · Checking progress…" : ""}</p></div>{hasErrors && <button type="button" className="btn btn-line btn-sm" onClick={onErrors}>Download error rows</button>}</div><div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4"><Metric label="Total rows" value={summary.totalRows} /><Metric label="Imported" value={summary.imported ?? 0} /><Metric label="Duplicates" value={summary.duplicates ?? summary.duplicateRows} /><Metric label="Invalid" value={summary.invalid ?? summary.invalidRows} /></div><div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3"><Metric label="Failed" value={summary.failed ?? 0} /><Metric label="Valid rows" value={summary.validRows} /><Metric label="Duplicate rows" value={summary.duplicateRows} /></div><div className="mt-5 flex flex-wrap gap-2"><Link className="btn btn-solid" href="/admin/leads">View leads</Link><button type="button" className="btn btn-line" onClick={onUploadAnother}>Upload another file</button></div></section>;
+}
+
+function ConfirmImportDialog({ data, pending, onConfirm, onCancel }: { data: LeadImport; pending: boolean; onConfirm: () => void; onCancel: () => void }) {
+  return <div className="fixed inset-0 z-50 grid place-items-center bg-overlay px-4" role="presentation"><div className="w-full max-w-md rounded-xl border border-border bg-surface-elevated p-5 shadow-lg" role="dialog" aria-modal="true" aria-labelledby="confirm-import-title"><h2 id="confirm-import-title" className="font-display text-lg font-semibold">Confirm import</h2><p className="mt-2 whitespace-pre-line text-sm text-muted-foreground">{data.summary.validRows} valid leads will be added.{"\\n"}{data.summary.invalidRows} invalid rows will be skipped.{"\\n"}{data.summary.duplicateRows} duplicate leads will be skipped.{"\\n\\n"}Do you want to continue?</p><div className="mt-5 flex justify-end gap-2"><button type="button" className="btn btn-line" onClick={onCancel} disabled={pending}>Cancel</button><button type="button" className="btn btn-solid" onClick={onConfirm} disabled={pending}>{pending ? "Importing…" : "Confirm import"}</button></div></div></div>;
 }
 
 function Metric({ label, value }: { label: string; value: number }) {
