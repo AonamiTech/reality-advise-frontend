@@ -32,8 +32,10 @@ test("in-app branding uses the visible square logo", () => {
   const shell = readFileSync(resolve(root, "components/shell/AppShell.tsx"), "utf8");
   assert.match(shell, />Realty Adwise</);
   assert.match(shell, /src="\/logo\.png"/);
-  assert.match(shell, /src="\/logo\.png" alt="" className="size-6/);
   assert.match(shell, /src="\/logo\.png" alt="" className="size-7/);
+  assert.match(shell, /src="\/logo\.png" alt="" className="size-8/);
+  assert.match(shell, /lg:justify-start lg:pl-3/);
+  assert.match(shell, /lg:pl-3/);
   assert.match(shell, /lg:w-64/);
   assert.match(shell, /lg:pl-64/);
 });
@@ -47,8 +49,9 @@ test("admin-enabled managers get a compact mobile navigation", () => {
 test("app shell includes the Aonami build credit", () => {
   const shell = readFileSync(resolve(root, "components/shell/AppShell.tsx"), "utf8");
   assert.match(shell, /Built by Aonami/);
-  assert.match(shell, /text-xs font-semibold/);
+  assert.match(shell, /text-sm font-semibold/);
   assert.match(shell, /aonami-credit/);
+  assert.ok(shell.indexOf("Built by Aonami") < shell.indexOf('border-t border-border p-3'));
 });
 
 test("logout confirms once and prevents duplicate submissions", () => {
