@@ -1,9 +1,47 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { getProperty, setPropertyExecutives, setPropertyStatus, updateProperty, type PropertyChanges } from "@/lib/admin";
+import { redirect } from "next/navigation";
+import { createProperty, getProperty, setPropertyExecutives, setPropertyStatus, updateProperty, type NewProperty, type PropertyChanges } from "@/lib/admin";
 import { echo, strOrNull, toFormState } from "@/lib/forms";
 import type { FormState } from "@/lib/types";
+
+const PROPERTY_TYPES = ["RESIDENTIAL", "COMMERCIAL"] as const;
+const TRANSACTION_TYPES = ["RENT_LEASE", "SALE_PURCHASE"] as const;
+
+export async function createPropertyAction(_prev: FormState, formData: FormData): Promise<FormState> {
+  const values = echo(formData, ["name", "description", "location", "transactionType", "propertyType", "minPrice", "maxPrice"]);
+  values.executiveIds = formData.getAll("executiveIds").filter((value): value is string => typeof value === "string" && value !== "").join(",");
+  const errors: Record<string, string> = {};
+  if (!values.name) errors.name = "Enter a property name";
+  if (!TRANSACTION_TYPES.includes(values.transactionType as (typeof TRANSACTION_TYPES)[number])) errors.transactionType = "Choose a valid transaction type";
+  if (!PROPERTY_TYPES.includes(values.propertyType as (typeof PROPERTY_TYPES)[number])) errors.propertyType = "Choose a valid property type";
+  const minPrice = values.minPrice ? Number(values.minPrice.replace(/[\s,]/g, "")) : undefined;
+  const maxPrice = values.maxPrice ? Number(values.maxPrice.replace(/[\s,]/g, "")) : undefined;
+  if (values.minPrice && (!Number.isFinite(minPrice) || minPrice! < 0)) errors.minPrice = "Enter a valid minimum price";
+  if (values.maxPrice && (!Number.isFinite(maxPrice) || maxPrice! < 0)) errors.maxPrice = "Enter a valid maximum price";
+  if (minPrice !== undefined && maxPrice !== undefined && minPrice > maxPrice) errors.maxPrice = "Maximum price must be greater than or equal to minimum price";
+  if (Object.keys(errors).length) return { status: "error", fieldErrors: errors, values };
+  const body: NewProperty = {
+    name: values.name,
+    transactionType: values.transactionType as NewProperty["transactionType"],
+    propertyType: values.propertyType as NewProperty["propertyType"],
+    currency: "INR",
+    ...(values.description ? { description: values.description } : {}),
+    ...(values.location ? { location: values.location } : {}),
+    ...(minPrice !== undefined ? { minPrice } : {}),
+    ...(maxPrice !== undefined ? { maxPrice } : {}),
+    ...(values.executiveIds ? { executiveIds: values.executiveIds.split(",") } : {}),
+  };
+  let propertyId: string;
+  try {
+    propertyId = (await createProperty(body)).id;
+  } catch (error) {
+    return toFormState(error, values);
+  }
+  revalidatePath("/admin", "layout");
+  redirect(`/admin/properties/${propertyId}?created=1`);
+}
 
 export async function updatePropertyAction(id: string, _prev: FormState, formData: FormData): Promise<FormState> {
   const values = echo(formData, ["name", "description", "location"]);

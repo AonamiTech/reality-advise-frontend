@@ -28,6 +28,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function PropertyPage({ params, searchParams }: Props) {
   const { id } = await params;
   const query = searchParams ? await searchParams : {};
+  const created = query.created === "1";
   const limit = Math.min(50, Math.max(1, Number(query.limit) || 20));
   const offset = Math.max(0, Number(query.offset) || 0);
   const [property, executives, history] = await Promise.all([
@@ -49,6 +50,8 @@ export default async function PropertyPage({ params, searchParams }: Props) {
         </div>
         <StatusBadge active={property.isActive} />
       </div>
+
+      {created && <p className="notice notice-success" role="status">Property created successfully.</p>}
 
       {property.needsAssignment && (
         <p className="notice notice-warn" role="status">
