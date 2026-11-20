@@ -98,15 +98,15 @@ async function commentRequest(role: Role, path: string, options: Parameters<type
   }
 }
 
-export function addLeadCommentAction(role: Role, leadId: string, comment: string): Promise<CommentActionResult> {
+export async function addLeadCommentAction(role: Role, leadId: string, comment: string): Promise<CommentActionResult> {
   return commentRequest(role, `/${AREA[role]}/leads/${encodeURIComponent(leadId)}/comments`, { method: "POST", body: { comment } });
 }
 
-export function editLeadCommentAction(role: Role, leadId: string, commentId: string, comment: string): Promise<CommentActionResult> {
+export async function editLeadCommentAction(role: Role, leadId: string, commentId: string, comment: string): Promise<CommentActionResult> {
   return commentRequest(role, `/${AREA[role]}/leads/${encodeURIComponent(leadId)}/comments/${encodeURIComponent(commentId)}`, { method: "PATCH", body: { comment } });
 }
 
-export function deleteLeadCommentAction(role: Role, leadId: string, commentId: string): Promise<CommentActionResult> {
+export async function deleteLeadCommentAction(role: Role, leadId: string, commentId: string): Promise<CommentActionResult> {
   return commentRequest(role, `/${AREA[role]}/leads/${encodeURIComponent(leadId)}/comments/${encodeURIComponent(commentId)}`, { method: "DELETE" });
 }
 
