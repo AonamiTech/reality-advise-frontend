@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { StatusBadge } from "@/components/StatusBadge";
+import { ManagerAdminAccessButton } from "@/components/ManagerAdminAccessButton";
 import { listManagers } from "@/lib/admin";
 
 export const metadata: Metadata = { title: "Managers" };
@@ -93,9 +94,10 @@ export default async function ManagersPage({ searchParams }: { searchParams: Sea
                   <StatusBadge active={m.isActive} />
                 </td>
                 <td className="col-actions">
-                  <Link className="btn btn-line btn-sm" href={`/admin/managers/${m.id}`}>
-                    Edit
-                  </Link>
+                  <div className="flex flex-wrap justify-end gap-2">
+                    {m.isAdmin ? <ManagerAdminAccessButton managerId={m.id} isAdmin /> : m.isActive ? <ManagerAdminAccessButton managerId={m.id} /> : null}
+                    <Link className="btn btn-line btn-sm" href={`/admin/managers/${m.id}`}>Edit</Link>
+                  </div>
                 </td>
               </tr>
             ))}

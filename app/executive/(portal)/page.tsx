@@ -2,12 +2,12 @@ import type { Metadata } from "next";
 import { LeadsView, parseLeadQuery } from "@/components/leads/LeadsView";
 import { AutoRefresh } from "@/components/AutoRefresh";
 import { getLeadSummary, listMyLeads } from "@/lib/executive";
-import { LEAD_STATUSES } from "@/lib/types";
+import { LEAD_STATUS_OPTIONS } from "@/lib/types";
 
 export const metadata: Metadata = { title: "My leads" };
 
 const PAGE = 20;
-const STATUSES = LEAD_STATUSES.filter((s) => s !== "PENDING_ASSIGNMENT");
+const STATUSES = LEAD_STATUS_OPTIONS;
 
 export default async function ExecutiveHome({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const query = parseLeadQuery(await searchParams, STATUSES);

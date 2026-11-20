@@ -100,9 +100,9 @@ function Mark() {
   );
 }
 
-function Brand({ role }: { role: SessionUser["role"] }) {
+function Brand({ role, href }: { role: SessionUser["role"]; href?: string }) {
   return (
-    <Link href={NAV[role][0].href} className="flex items-center gap-2.5 rounded-lg">
+    <Link href={href ?? NAV[role][0].href} className="flex items-center gap-2.5 rounded-lg">
       <Mark />
       <span className="grid leading-tight">
         <img src="/ra.png" alt="Realty Adwise" className="h-9 w-36 object-contain object-left" />
@@ -124,7 +124,9 @@ export function AppShell({ user, children }: { user: SessionUser; children: Reac
 
 function Shell({ user, children }: { user: SessionUser; children: React.ReactNode }) {
   const pathname = usePathname();
-  const items = NAV[user.role];
+  const canAccessAdmin = user.role === "ADMIN" || user.isAdmin === true;
+  const canAccessManager = user.role === "MANAGER";
+  const items = user.role === "ADMIN" ? NAV.ADMIN : user.role === "MANAGER" && canAccessAdmin ? [...NAV.ADMIN, ...NAV.MANAGER] : canAccessManager ? NAV.MANAGER : NAV.EXECUTIVE;
   const primary = items.filter((i) => i.primary);
   const current = [...items].reverse().find((i) => isActive(i, pathname));
 
@@ -143,7 +145,7 @@ function Shell({ user, children }: { user: SessionUser; children: React.ReactNod
             </Link>
           </span>
           <span className="hidden lg:block">
-            <Brand role={user.role} />
+            <Brand role={user.role} href={items[0].href} />
           </span>
         </div>
         <nav aria-label="Main" className="min-h-0 flex-1 overflow-y-auto p-3">
@@ -170,7 +172,7 @@ function Shell({ user, children }: { user: SessionUser; children: React.ReactNod
             <SheetContent title="Menu">
               <div className="grid gap-5 p-3">
                 <div className="px-1">
-                  <Brand role={user.role} />
+                  <Brand role={user.role} href={items[0].href} />
                 </div>
                 <nav aria-label="Menu">
                   <NavList items={items} pathname={pathname} onNavigate />

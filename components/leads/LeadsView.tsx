@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { statusLabel } from "@/lib/format";
-import { FOLLOW_UP_FILTERS, LEAD_SOURCES, LEAD_STATUSES, sourceLabel, type Lead, type Role } from "@/lib/types";
+import { FOLLOW_UP_FILTERS, LEAD_SOURCES, LEAD_STATUS_OPTIONS, sourceLabel, type Lead, type Role } from "@/lib/types";
 import { LeadCard } from "./LeadCard";
 import { transferLeadAction } from "@/lib/actions/leads";
 
@@ -23,7 +23,7 @@ type Props = {
   showExecutive?: boolean;
 };
 
-export function parseLeadQuery(sp: Record<string, string | undefined>, statuses: readonly string[] = LEAD_STATUSES): LeadQuery {
+export function parseLeadQuery(sp: Record<string, string | undefined>, statuses: readonly string[] = LEAD_STATUS_OPTIONS): LeadQuery {
   return {
     search: sp.search ?? "",
     status: statuses.includes(sp.status ?? "") ? sp.status! : "",
@@ -36,7 +36,7 @@ export function parseLeadQuery(sp: Record<string, string | undefined>, statuses:
   };
 }
 
-export function LeadsView({ role, base, detailBase, leads, hasNext, query, properties, executives, statuses = LEAD_STATUSES, statusCounts, showExecutive = true }: Props) {
+export function LeadsView({ role, base, detailBase, leads, hasNext, query, properties, executives, statuses = LEAD_STATUS_OPTIONS, statusCounts, showExecutive = true }: Props) {
   const filtered = Boolean(query.search || query.status || query.propertyId || query.executiveId || query.important || query.followUp || query.source);
   const href = (n: number) => {
     const q = new URLSearchParams();

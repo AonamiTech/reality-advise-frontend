@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { assignLeadAsAdmin, createLead, setLeadStatus, transferLeadAsAdmin, type NewLead } from "@/lib/admin";
 import { authedRequest } from "@/lib/api";
-import { assignLeadAsManager, createLeadAsManager, transferLeadAsManager } from "@/lib/manager";
+import { assignLeadAsManager, createLeadAsManager, setManagerLeadStatus, transferLeadAsManager } from "@/lib/manager";
 import { setMyLeadStatus } from "@/lib/executive";
 import { echo, str, toFormState } from "@/lib/forms";
 import type { FieldErrors, FormState, Lead, LeadFollowUp, Role } from "@/lib/types";
@@ -74,6 +74,40 @@ export async function updateMyLeadStatusAction(id: string, _prev: FormState, for
   }
   revalidatePath("/executive", "layout");
   return { status: "success", message: "Status updated." };
+}
+
+export async function updateManagerLeadStatusAction(id: string, _prev: FormState, formData: FormData): Promise<FormState> {
+  try {
+    await setManagerLeadStatus(id, str(formData, "status"));
+  } catch (error) {
+    return toFormState(error);
+  }
+  revalidatePath("/manager", "layout");
+  return { status: "success", message: "Status updated." };
+}
+
+type CommentActionResult = { ok: true } | { ok: false; message: string };
+
+async function commentRequest(role: Role, path: string, options: Parameters<typeof authedRequest>[2]): Promise<CommentActionResult> {
+  try {
+    await authedRequest<unknown>(role, path, options);
+    return { ok: true };
+  } catch (error) {
+    const state = toFormState(error);
+    return { ok: false, message: state.message ?? "Unable to update the comment." };
+  }
+}
+
+export function addLeadCommentAction(role: Role, leadId: string, comment: string): Promise<CommentActionResult> {
+  return commentRequest(role, `/${AREA[role]}/leads/${encodeURIComponent(leadId)}/comments`, { method: "POST", body: { comment } });
+}
+
+export function editLeadCommentAction(role: Role, leadId: string, commentId: string, comment: string): Promise<CommentActionResult> {
+  return commentRequest(role, `/${AREA[role]}/leads/${encodeURIComponent(leadId)}/comments/${encodeURIComponent(commentId)}`, { method: "PATCH", body: { comment } });
+}
+
+export function deleteLeadCommentAction(role: Role, leadId: string, commentId: string): Promise<CommentActionResult> {
+  return commentRequest(role, `/${AREA[role]}/leads/${encodeURIComponent(leadId)}/comments/${encodeURIComponent(commentId)}`, { method: "DELETE" });
 }
 
 /** Long-press / star toggle. Saved per user on the server; both calls are idempotent. */

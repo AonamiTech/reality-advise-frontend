@@ -152,6 +152,9 @@ export const setManagerStatus = (id: string, isActive: boolean) =>
 
 export const deleteManager = (id: string) => a<unknown>(`/admin/managers/${enc(id)}`, { method: "DELETE" });
 
+export const promoteManager = (id: string) =>
+  a<Manager>(`/admin/managers/${enc(id)}/promote`, { method: "POST" });
+
 // ---- Lead assignment ----
 
 export const assignLeadAsAdmin = (id: string, executiveId: string) =>

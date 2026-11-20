@@ -28,9 +28,10 @@ type Props = {
   propertyHref?: string;
   created?: boolean;
   whatsappMessage?: string;
+  currentUserId?: string;
 };
 
-export function LeadDetailView({ lead, role, backHref, backLabel, statusAction, assign, ownership, propertyHref, created, whatsappMessage }: Props) {
+export function LeadDetailView({ lead, role, backHref, backLabel, statusAction, assign, ownership, propertyHref, created, whatsappMessage, currentUserId }: Props) {
   const pending = lead.status === "PENDING_ASSIGNMENT";
   const phone = lead.customer.mobile;
 
@@ -128,7 +129,7 @@ export function LeadDetailView({ lead, role, backHref, backLabel, statusAction, 
 
           <section className="panel">
             <h2>Activity Timeline</h2>
-            <ActivityTimeline activity={lead.activity ?? []} />
+            <ActivityTimeline activity={lead.activity ?? []} role={role} leadId={lead.id} currentUserId={currentUserId} />
           </section>
 
           <section className="panel">

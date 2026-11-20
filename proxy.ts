@@ -76,7 +76,7 @@ export async function proxy(request: NextRequest) {
   const area: Role = pathname.startsWith("/executive") ? "EXECUTIVE" : pathname.startsWith("/manager") ? "MANAGER" : "ADMIN";
   if (!session) return toLogin(true);
   // Signed in, but this area belongs to another role: send them to their own dashboard.
-  if (session.user.role !== area) return to(homePath[session.user.role]);
+  if (session.user.role !== area && !(area === "ADMIN" && session.user.isAdmin === true)) return to(homePath[session.user.role]);
 
   return next();
 }

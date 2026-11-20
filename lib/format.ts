@@ -17,6 +17,8 @@ export function formatBudget(n: number | null | undefined): string {
 }
 
 export function statusLabel(status: string): string {
+  const labels: Record<string, string> = { PRE_CONNECT: "Pre-Connect", NOT_CONNECTED: "Not Connected", HOLD: "Hold" };
+  if (labels[status]) return labels[status];
   return status.replace(/_/g, " ").toLowerCase().replace(/^\w/, (c) => c.toUpperCase());
 }
 

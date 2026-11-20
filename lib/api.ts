@@ -109,7 +109,8 @@ async function browserTimezone(): Promise<string | undefined> {
 export async function authedRequest<T>(role: Role, path: string, options: Omit<RequestOptions, "token"> = {}): Promise<T> {
   const session = await getSession();
   const signout = `/auth/signout?role=${role}&reason=expired`;
-  if (!session || session.user.role !== role) redirect(signout);
+  const allowed = session && (session.user.role === role || (role === "ADMIN" && session.user.isAdmin === true));
+  if (!allowed) redirect(signout);
   // Lead reads and writes carry the follow-up `state`, which depends on the user's calendar day.
   const tz = path.includes("/leads") ? await browserTimezone() : undefined;
   const query = tz ? { tz, ...options.query } : options.query;
@@ -125,7 +126,8 @@ export async function authedRequest<T>(role: Role, path: string, options: Omit<R
 export async function authedRawRequest(role: Role, path: string, query?: Query, init: RequestInit = {}): Promise<Response> {
   const session = await getSession();
   const signout = `/auth/signout?role=${role}&reason=expired`;
-  if (!session || session.user.role !== role) redirect(signout);
+  const allowed = session && (session.user.role === role || (role === "ADMIN" && session.user.isAdmin === true));
+  if (!allowed) redirect(signout);
   const url = new URL(BASE_URL + path);
   for (const [key, value] of Object.entries(query ?? {})) if (value) url.searchParams.set(key, value);
   let res: Response;

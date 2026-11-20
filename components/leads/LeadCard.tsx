@@ -73,7 +73,7 @@ export function LeadCard({ lead, role, href, showExecutive = true, ownership }: 
   const meta = [lead.requirement, lead.budget != null ? formatBudget(lead.budget) : null].filter(Boolean).join(" · ");
 
   return (
-    <article className="relative grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-2.5 px-4 py-3.5 transition-colors hover:bg-muted/40 md:grid-cols-[minmax(0,1fr)_9.5rem_auto]">
+    <article className="lead-card relative grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-2.5 px-4 py-3.5 transition-colors hover:bg-muted/40 md:grid-cols-[minmax(0,1fr)_9.5rem_auto]">
       {important && <span aria-hidden="true" className="absolute inset-y-0 left-0 w-0.5 bg-warning" />}
       <Link
         href={href}
