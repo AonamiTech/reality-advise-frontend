@@ -35,7 +35,7 @@ export function RecentLeadsTable({ title, leads, detailBase, allHref, empty }: {
                 const sub = [l.requirement, l.budget != null ? formatBudget(l.budget) : null].filter(Boolean).join(" · ");
                 return (
                 <tr key={l.id}>
-                  <td className="max-w-0">
+                  <td className="min-w-0">
                     <div className="flex items-baseline gap-2">
                       <Link className="person-name truncate" href={`${detailBase}/${l.id}`}>
                         {l.customer.name}

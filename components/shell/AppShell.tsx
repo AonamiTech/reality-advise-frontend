@@ -96,7 +96,7 @@ function LogoutButton({ rail, role }: { rail?: boolean; role: SessionUser["role"
 
 function Mark() {
   return (
-    <span className="grid size-8 shrink-0 place-items-center overflow-hidden rounded-lg bg-surface" aria-hidden="true"><img src="/ra.png" alt="" className="h-full w-full object-contain" /></span>
+    <span className="grid size-9 shrink-0 place-items-center overflow-hidden rounded-lg bg-white p-0.5 shadow-sm" aria-hidden="true"><img src="/ralogo.png" alt="" className="h-full w-full object-contain" /></span>
   );
 }
 
@@ -105,7 +105,7 @@ function Brand({ role, href }: { role: SessionUser["role"]; href?: string }) {
     <Link href={href ?? NAV[role][0].href} className="flex items-center gap-2.5 rounded-lg">
       <Mark />
       <span className="grid leading-tight">
-        <img src="/ra.png" alt="Realty Adwise" className="h-9 w-36 object-contain object-left" />
+        <span className="font-display text-[15px] font-semibold tracking-tight text-foreground">Realty Adwise</span>
         <span className="text-xs text-muted-foreground">{ROLE_LABEL[role]}</span>
       </span>
     </Link>

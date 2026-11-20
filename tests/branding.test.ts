@@ -19,3 +19,14 @@ test("Realty Adwise uses the logo for browser and installed-app icons", () => {
   const layout = readFileSync(resolve(root, "app/layout.tsx"), "utf8");
   assert.match(layout, /icons:\s*\{[\s\S]*icon:\s*"\/ralogo\.png"/);
 });
+
+test("in-app branding uses the visible square logo", () => {
+  for (const file of ["components/shell/AppShell.tsx", "components/AuthLayout.tsx", "components/InstallPrompt.tsx"]) {
+    const source = readFileSync(resolve(root, file), "utf8");
+    assert.match(source, /\/ralogo\.png/);
+    assert.doesNotMatch(source, /\/ra\.png/);
+  }
+
+  const shell = readFileSync(resolve(root, "components/shell/AppShell.tsx"), "utf8");
+  assert.match(shell, />Realty Adwise</);
+});
