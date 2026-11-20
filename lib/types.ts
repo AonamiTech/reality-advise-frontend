@@ -51,6 +51,21 @@ export type FormState = {
   values?: Record<string, string>;
 };
 
+export type LeadImportRowStatus = "PENDING" | "INVALID" | "DUPLICATE" | "IMPORTED" | "FAILED";
+export type LeadImportStatus = "PREVIEW" | "PROCESSING" | "COMPLETED" | "COMPLETED_WITH_ERRORS" | "FAILED";
+export type LeadImportRow = {
+  excelRowNumber: number;
+  name: string | null;
+  mobile: string | null;
+  email: string | null;
+  property: string | null;
+  source: string | null;
+  status: LeadImportRowStatus;
+  errorMessage: string | null;
+};
+export type LeadImportSummary = { totalRows: number; validRows: number; invalidRows: number; duplicateRows: number; imported?: number; duplicates?: number; failed?: number; invalid?: number };
+export type LeadImport = { importId: string; status: LeadImportStatus; summary: LeadImportSummary; rows: LeadImportRow[] };
+
 export const idleState: FormState = { status: "idle" };
 
 export const LEAD_STATUSES = ["PENDING_ASSIGNMENT", "INCOMING", "RINGING", "CONNECTED", "CLOSED", "LOST", "BROKER"] as const;
