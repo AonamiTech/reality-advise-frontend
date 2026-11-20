@@ -16,6 +16,11 @@ function numberValue(value: unknown, fallback = 0) {
   return typeof value === "number" && Number.isFinite(value) ? value : fallback;
 }
 
+function textValue(...values: unknown[]) {
+  const value = values.find((candidate) => candidate !== undefined && candidate !== null && candidate !== "");
+  return value == null ? null : String(value);
+}
+
 function normalizeImport(payload: unknown, fallbackId?: string): LeadImport {
   const data = unwrap(payload);
   const summary = (data.summary && typeof data.summary === "object" ? data.summary : data) as Record<string, unknown>;
@@ -28,22 +33,26 @@ function normalizeImport(payload: unknown, fallbackId?: string): LeadImport {
       validRows: numberValue(summary.validRows ?? summary.valid),
       invalidRows: numberValue(summary.invalidRows ?? summary.invalid),
       duplicateRows: numberValue(summary.duplicateRows ?? summary.duplicates),
-      imported: typeof summary.imported === "number" ? summary.imported : undefined,
-      duplicates: typeof summary.duplicates === "number" ? summary.duplicates : undefined,
-      failed: typeof summary.failed === "number" ? summary.failed : undefined,
-      invalid: typeof summary.invalid === "number" ? summary.invalid : undefined,
+      imported: numberValue(summary.imported ?? summary.importedRows ?? summary.importedCount, -1) >= 0 ? numberValue(summary.imported ?? summary.importedRows ?? summary.importedCount) : undefined,
+      duplicates: numberValue(summary.duplicates ?? summary.duplicateRows ?? summary.duplicateCount, -1) >= 0 ? numberValue(summary.duplicates ?? summary.duplicateRows ?? summary.duplicateCount) : undefined,
+      failed: numberValue(summary.failed ?? summary.failedRows ?? summary.failedCount, -1) >= 0 ? numberValue(summary.failed ?? summary.failedRows ?? summary.failedCount) : undefined,
+      invalid: numberValue(summary.invalid ?? summary.invalidRows ?? summary.invalidCount, -1) >= 0 ? numberValue(summary.invalid ?? summary.invalidRows ?? summary.invalidCount) : undefined,
     },
     rows: rows.map((row) => {
       const value = (row ?? {}) as Record<string, unknown>;
+      const rowData = [value.rowData, value.data, value.values, value.rawData, value.originalRow, value.input, value.record, value.row, value.lead, value.leadData].find((candidate) => candidate && typeof candidate === "object") as Record<string, unknown> | undefined;
+      const fields = { ...(rowData ?? {}), ...value };
+      const validationErrors = fields.errors;
+      const errorText = Array.isArray(validationErrors) ? validationErrors.map((error) => typeof error === "string" ? error : (error as Record<string, unknown>)?.message).filter(Boolean).join(", ") : validationErrors;
       return {
-        excelRowNumber: numberValue(value.excelRowNumber ?? value.rowNumber),
-        name: value.name == null ? null : String(value.name),
-        mobile: value.mobile == null ? null : String(value.mobile),
-        email: value.email == null ? null : String(value.email),
-        property: value.property == null ? value.propertyName == null ? null : String(value.propertyName) : String(value.property),
-        source: value.source == null ? null : String(value.source),
-        status: String(value.status ?? "PENDING") as LeadImportRow["status"],
-        errorMessage: value.errorMessage == null ? value.error == null ? null : String(value.error) : String(value.errorMessage),
+        excelRowNumber: numberValue(value.excelRowNumber ?? value.rowNumber ?? value.excelRow ?? fields.excelRowNumber ?? fields.rowNumber),
+        name: textValue(fields.name, fields.fullName, fields.customerName),
+        mobile: textValue(fields.mobile, fields.phone, fields.phoneNumber),
+        email: textValue(fields.email, fields.emailAddress),
+        property: textValue(fields.property, fields.propertyName, fields.requestedPropertyName),
+        source: textValue(fields.source, fields.leadSource),
+        status: String(value.status ?? fields.status ?? "PENDING") as LeadImportRow["status"],
+        errorMessage: textValue(value.errorMessage, value.error, fields.errorMessage, fields.error, errorText),
       };
     }),
   };
