@@ -192,6 +192,11 @@
   p { margin: 0; }
   strong { font-weight: 600; }
   .muted { color: var(--muted-foreground); }
+  .aonami-credit { color: #000; }
+  :root[data-theme="dark"] .aonami-credit { color: #fff; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .aonami-credit { color: #fff; }
+  }
   .eyebrow { font: 500 12px/1.4 var(--f-body), sans-serif; color: var(--muted-foreground); margin: 0 0 4px; }
   .label { font: 500 13px/1.4 var(--f-body), sans-serif; color: var(--foreground); }
 

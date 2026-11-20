@@ -3,7 +3,7 @@
 import { LogOut, Menu, Search } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { logout } from "@/lib/actions/auth";
 import type { SessionUser } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -65,14 +65,17 @@ function Avatar({ name }: { name: string }) {
 
 function LogoutButton({ rail, role }: { rail?: boolean; role: SessionUser["role"] }) {
   const unsubscribed = useRef(false);
+  const [loggingOut, setLoggingOut] = useState(false);
   return (
     <form
       action={logout}
       onSubmit={async (e) => {
         // Stop alerts for this browser while the session still exists, then log out.
-        if (unsubscribed.current) return;
+        if (unsubscribed.current || loggingOut) return;
         e.preventDefault();
+        if (!window.confirm("Are you sure you want to log out?")) return;
         const form = e.currentTarget;
+        setLoggingOut(true);
         await disablePush(role);
         unsubscribed.current = true;
         broadcastLogout();
@@ -81,6 +84,7 @@ function LogoutButton({ rail, role }: { rail?: boolean; role: SessionUser["role"
     >
       <button
         type="submit"
+        disabled={loggingOut}
         data-tip={rail ? "Log out" : undefined}
         className={cn(
           "flex h-10 w-full items-center gap-3 rounded-lg px-3 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground lg:h-9",
@@ -88,7 +92,7 @@ function LogoutButton({ rail, role }: { rail?: boolean; role: SessionUser["role"
         )}
       >
         <LogOut className="size-[18px] shrink-0" strokeWidth={1.75} aria-hidden="true" />
-        <span className={cn(rail && "sr-only lg:not-sr-only")}>Log out</span>
+        <span className={cn(rail && "sr-only lg:not-sr-only")}>{loggingOut ? "Logging out…" : "Log out"}</span>
       </button>
     </form>
   );
@@ -138,7 +142,7 @@ function Shell({ user, children }: { user: SessionUser; children: React.ReactNod
       </a>
 
       {/* Tablet: icon rail. Laptop and up: full sidebar. */}
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-16 flex-col border-r border-border bg-surface sm:flex lg:w-60">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-16 flex-col border-r border-border bg-surface sm:flex lg:w-64">
         <div className="flex h-14 shrink-0 items-center justify-center border-b border-border px-3 lg:justify-start lg:px-4">
           <span className="lg:hidden">
             <Link href={items[0].href} aria-label="Realty Adwise home" className="block rounded-lg">
@@ -158,13 +162,17 @@ function Shell({ user, children }: { user: SessionUser; children: React.ReactNod
             <span className="sr-only lg:not-sr-only lg:min-w-0 lg:flex-1">
               <span className="block truncate text-sm font-medium">{user.name}</span>
               <span className="block truncate text-xs text-muted-foreground">{user.email}</span>
+              <span className="mt-1 flex items-center gap-1.5 lg:justify-start">
+                <img src="/logo.png" alt="" className="size-6 rounded-full bg-white object-contain" />
+                <span className="aonami-credit text-xs font-semibold">Built by Aonami</span>
+              </span>
             </span>
           </div>
           <LogoutButton rail role={user.role} />
         </div>
       </aside>
 
-      <div className="sm:pl-16 lg:pl-60">
+      <div className="sm:pl-16 lg:pl-64">
         <header className="sticky top-0 z-20 flex h-14 items-center gap-2 border-b border-border bg-background px-2 sm:gap-3 sm:px-6">
           <Sheet>
             <SheetTrigger className="grid size-11 place-items-center rounded-lg text-foreground hover:bg-muted sm:hidden" aria-label="Open menu">
@@ -184,6 +192,10 @@ function Shell({ user, children }: { user: SessionUser; children: React.ReactNod
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-sm font-medium">{user.name}</span>
                       <span className="block truncate text-xs text-muted-foreground">{user.email}</span>
+                          <span className="mt-1 flex items-center gap-1.5">
+                            <img src="/logo.png" alt="" className="size-7 rounded-full bg-white object-contain" />
+                            <span className="aonami-credit text-xs font-semibold">Built by Aonami</span>
+                          </span>
                     </span>
                     <ThemeToggle tip="tip-left" />
                   </div>
