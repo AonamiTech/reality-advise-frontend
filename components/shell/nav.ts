@@ -1,4 +1,4 @@
-import { BarChart3, Building2, ContactRound, LayoutDashboard, ListChecks, Settings, UserCog, ArrowLeftRight, UserRound, UsersRound, Users, type LucideIcon } from "lucide-react";
+import { BarChart3, Building2, ContactRound, LayoutDashboard, ListChecks, Settings, UserCog, ArrowLeftRight, UserRound, UsersRound, Users, Upload, type LucideIcon } from "lucide-react";
 import type { Role } from "@/lib/types";
 
 export type NavItem = { href: string; label: string; icon: LucideIcon; /** Shown in the mobile bottom bar. */ primary?: boolean; exact?: boolean };
@@ -7,7 +7,8 @@ export type NavItem = { href: string; label: string; icon: LucideIcon; /** Shown
 export const NAV: Record<Role, NavItem[]> = {
   ADMIN: [
     { href: "/admin", label: "Overview", icon: LayoutDashboard, primary: true, exact: true },
-    { href: "/admin/leads", label: "Leads", icon: ListChecks, primary: true },
+    { href: "/admin/leads", label: "All Leads", icon: ListChecks, primary: true },
+    { href: "/admin/leads/import", label: "Upload Leads", icon: Upload },
     { href: "/admin/properties", label: "Properties", icon: Building2, primary: true },
     { href: "/admin/reports", label: "Reports", icon: BarChart3 },
     { href: "/admin/customers", label: "Clients", icon: ContactRound, primary: true },

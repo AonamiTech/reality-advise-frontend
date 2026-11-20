@@ -46,7 +46,7 @@ export async function apiRequest<T>(path: string, { method = "GET", body, query,
   }
 
   const headers: Record<string, string> = { Accept: "application/json" };
-  if (body !== undefined) headers["Content-Type"] = "application/json";
+  if (body !== undefined && !(body instanceof FormData)) headers["Content-Type"] = "application/json";
   if (token) headers.Authorization = `Bearer ${token}`;
 
   let res: Response;
@@ -54,7 +54,7 @@ export async function apiRequest<T>(path: string, { method = "GET", body, query,
     res = await fetch(url, {
       method,
       headers,
-      body: body === undefined ? undefined : JSON.stringify(body),
+      body: body === undefined ? undefined : body instanceof FormData ? body : JSON.stringify(body),
       cache: "no-store",
       signal: AbortSignal.timeout(TIMEOUT_MS),
     });
