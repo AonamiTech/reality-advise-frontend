@@ -21,10 +21,33 @@ function textValue(...values: unknown[]) {
   return value == null ? null : String(value);
 }
 
+function recordValue(value: unknown): Record<string, unknown> | undefined {
+  if (value && typeof value === "object") return value as Record<string, unknown>;
+  if (typeof value === "string") {
+    try {
+      const parsed = JSON.parse(value);
+      return parsed && typeof parsed === "object" ? parsed as Record<string, unknown> : undefined;
+    } catch {
+      return undefined;
+    }
+  }
+  return undefined;
+}
+
+function pick(record: Record<string, unknown>, keys: string[]) {
+  const entries = Object.entries(record);
+  for (const key of keys) {
+    const normalized = key.replace(/[^a-z0-9]/gi, "").toLowerCase();
+    const entry = entries.find(([name]) => name.replace(/[^a-z0-9]/gi, "").toLowerCase() === normalized);
+    if (entry && entry[1] !== undefined && entry[1] !== null && entry[1] !== "") return entry[1];
+  }
+  return undefined;
+}
+
 function normalizeImport(payload: unknown, fallbackId?: string): LeadImport {
   const data = unwrap(payload);
   const summary = (data.summary && typeof data.summary === "object" ? data.summary : data) as Record<string, unknown>;
-  const rows = Array.isArray(data.rows) ? data.rows : [];
+  const rows = Array.isArray(data.rows) ? data.rows : Array.isArray(data.previewRows) ? data.previewRows : Array.isArray(data.items) ? data.items : [];
   return {
     importId: String(data.importId ?? data.id ?? fallbackId ?? ""),
     status: (data.status ?? "PREVIEW") as LeadImportStatus,
@@ -40,19 +63,21 @@ function normalizeImport(payload: unknown, fallbackId?: string): LeadImport {
     },
     rows: rows.map((row) => {
       const value = (row ?? {}) as Record<string, unknown>;
-      const rowData = [value.rowData, value.data, value.values, value.rawData, value.originalRow, value.input, value.record, value.row, value.lead, value.leadData].find((candidate) => candidate && typeof candidate === "object") as Record<string, unknown> | undefined;
+      const rowData = [value.rowData, value.data, value.values, value.rawData, value.originalRow, value.originalData, value.parsedData, value.parsed, value.input, value.inputData, value.record, value.row, value.lead, value.leadData].map(recordValue).find(Boolean);
+      const customer = recordValue(value.customer);
+      const property = recordValue(value.property);
       const fields = { ...(rowData ?? {}), ...value };
-      const validationErrors = fields.errors;
+      const validationErrors = fields.errors ?? fields.validationErrors ?? fields.errorMessages;
       const errorText = Array.isArray(validationErrors) ? validationErrors.map((error) => typeof error === "string" ? error : (error as Record<string, unknown>)?.message).filter(Boolean).join(", ") : validationErrors;
       return {
-        excelRowNumber: numberValue(value.excelRowNumber ?? value.rowNumber ?? value.excelRow ?? fields.excelRowNumber ?? fields.rowNumber),
-        name: textValue(fields.name, fields.fullName, fields.customerName),
-        mobile: textValue(fields.mobile, fields.phone, fields.phoneNumber),
-        email: textValue(fields.email, fields.emailAddress),
-        property: textValue(fields.property, fields.propertyName, fields.requestedPropertyName),
-        source: textValue(fields.source, fields.leadSource),
-        status: String(value.status ?? fields.status ?? "PENDING") as LeadImportRow["status"],
-        errorMessage: textValue(value.errorMessage, value.error, fields.errorMessage, fields.error, errorText),
+        excelRowNumber: numberValue(value.excelRowNumber ?? value.rowNumber ?? value.excelRow ?? pick(fields, ["excelRowNumber", "rowNumber", "excelRow"])),
+        name: textValue(pick(fields, ["name", "fullName", "customerName"]), customer?.name),
+        mobile: textValue(pick(fields, ["mobile", "phone", "phoneNumber"]), customer?.mobile),
+        email: textValue(pick(fields, ["email", "emailAddress"]), customer?.email),
+        property: textValue(pick(fields, ["property", "propertyName", "requestedPropertyName"]), property?.name),
+        source: textValue(pick(fields, ["source", "leadSource"])),
+        status: String(value.status ?? pick(fields, ["status"]) ?? "PENDING") as LeadImportRow["status"],
+        errorMessage: textValue(value.errorMessage, value.error, pick(fields, ["errorMessage", "error"]), errorText),
       };
     }),
   };
