@@ -94,11 +94,8 @@ export function LeadCard({ lead, role, href, showExecutive = true, ownership }: 
         className="col-span-2 block min-w-0 select-none rounded-md no-underline [-webkit-touch-callout:none] md:col-span-1"
       >
         <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
-          <h2 className="min-w-0 truncate !font-sans !text-[15px] !font-medium !tracking-normal">{lead.customer.name}</h2>
+          <h2 className="min-w-0 flex-1 truncate !font-sans !text-[15px] !font-medium !tracking-normal">{lead.customer.name}</h2>
           <span className="num text-xs text-muted-foreground">#{lead.leadNo}</span>
-          <span className="self-center md:hidden">
-            <LeadStatusBadge status={lead.status} />
-          </span>
           {lead.enquiryType && <EnquiryBadge type={lead.enquiryType} />}
           {lead.isNew && <span className="tag-new !ml-0">New</span>}
           {lead.followUp && <FollowUpBadge followUp={lead.followUp} className="self-center" />}
@@ -108,6 +105,9 @@ export function LeadCard({ lead, role, href, showExecutive = true, ownership }: 
               Important
             </span>
           )}
+        </div>
+        <div className="flex justify-end md:hidden">
+          <LeadStatusBadge status={lead.status} />
         </div>
         <p className="mt-0.5 truncate text-sm text-muted-foreground">
           <span className="text-foreground">{lead.property.name}</span>

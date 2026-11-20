@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 const css = readFileSync(resolve(process.cwd(), "app/globals.css"), "utf8");
+const leadCard = readFileSync(resolve(process.cwd(), "components/leads/LeadCard.tsx"), "utf8");
 
 test("admin table wrappers contain wide tables on narrow viewports", () => {
   const tableWrap = css.match(/\.table-wrap\s*\{([^}]+)\}/)?.[1] ?? "";
@@ -16,4 +17,9 @@ test("admin table wrappers contain wide tables on narrow viewports", () => {
 
 test("dashboard lead tables do not clip their content", () => {
   assert.doesNotMatch(css, /\.recent-leads-wrap\s*\{[^}]*overflow-x:\s*hidden/);
+});
+
+test("mobile lead cards keep the customer name readable beside status", () => {
+  assert.match(leadCard, /className="min-w-0 flex-1 truncate/);
+  assert.match(leadCard, /className="flex justify-end md:hidden"/);
 });
