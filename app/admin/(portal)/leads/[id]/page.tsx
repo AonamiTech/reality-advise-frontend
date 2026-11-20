@@ -6,6 +6,7 @@ import { AutoRefresh } from "@/components/AutoRefresh";
 import { getLead, listExecutives } from "@/lib/admin";
 import { ApiError } from "@/lib/api";
 import { listNotificationsAction } from "@/lib/actions/notifications";
+import { requireSession } from "@/lib/session";
 
 type Props = { params: Promise<{ id: string }>; searchParams: Promise<{ created?: string }> };
 
@@ -25,6 +26,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function LeadPage({ params, searchParams }: Props) {
   const [{ id }, { created }] = await Promise.all([params, searchParams]);
+  const session = await requireSession("ADMIN");
   const [lead, executives, notificationList] = await Promise.all([loadLead(id), listExecutives({ isActive: "true" }), listNotificationsAction("ADMIN", "200")]);
   const whatsappMessage = notificationList.notifications.find((notification) => notification.type === "LEAD_CREATED" && notification.entityId === lead.id)?.message;
   return (
@@ -41,6 +43,7 @@ export default async function LeadPage({ params, searchParams }: Props) {
       propertyHref={`/admin/properties/${lead.property.id}`}
       created={Boolean(created)}
       whatsappMessage={whatsappMessage}
+      currentUserId={session.user.id}
     />
     </>
   );

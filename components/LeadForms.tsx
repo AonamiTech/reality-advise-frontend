@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ENQUIRY_LABEL, LEAD_SOURCES, LEAD_STATUSES, MANUAL_SUB_SOURCES, MANUAL_SUB_SOURCE_LABEL, idleState, sourceLabel, type FormState, type LeadStatus } from "@/lib/types";
+import { ENQUIRY_LABEL, LEAD_SOURCES, LEAD_STATUS_OPTIONS, MANUAL_SUB_SOURCES, MANUAL_SUB_SOURCE_LABEL, idleState, sourceLabel, type FormState, type LeadStatus } from "@/lib/types";
 import { statusLabel } from "@/lib/format";
 import { Field } from "./Field";
 import { FormMessage } from "./FormMessage";
@@ -113,7 +113,7 @@ export function LeadStatusForm({ action, current }: { action: Action; current: L
       <div className="field">
         <label htmlFor="f-status">Status</label>
         <select id="f-status" name="status" defaultValue={current}>
-          {LEAD_STATUSES.filter((s) => s !== "PENDING_ASSIGNMENT").map((s) => (
+          {LEAD_STATUS_OPTIONS.map((s) => (
             <option key={s} value={s}>
               {statusLabel(s)}
             </option>

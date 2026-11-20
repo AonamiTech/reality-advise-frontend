@@ -6,6 +6,7 @@ import {
   createManager,
   deleteManager,
   getManager,
+  promoteManager,
   resetManagerPassword,
   setManagerStatus,
   updateManager,
@@ -75,6 +76,16 @@ export async function setManagerStatusAction(id: string, isActive: boolean): Pro
   }
   revalidatePath("/admin", "layout");
   return { status: "success", message: isActive ? "Manager activated." : "Manager deactivated." };
+}
+
+export async function promoteManagerAction(id: string): Promise<FormState> {
+  try {
+    await promoteManager(id);
+  } catch (error) {
+    return toFormState(error);
+  }
+  revalidatePath("/admin/managers", "page");
+  return { status: "success", message: "Admin access granted successfully." };
 }
 
 export async function deleteManagerAction(id: string): Promise<FormState> {

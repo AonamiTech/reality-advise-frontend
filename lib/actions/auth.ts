@@ -27,7 +27,7 @@ export async function login(_prev: FormState, formData: FormData): Promise<FormS
   const role: Role = result.user.role === "SALES" ? "EXECUTIVE" : result.user.role;
 
   await setSession(result.accessToken, { ...result.user, role }, result.refreshToken);
-  redirect(safeNext(str(formData, "next"), role));
+  redirect(safeNext(str(formData, "next"), role, result.user.isAdmin === true));
 }
 
 export async function logout() {

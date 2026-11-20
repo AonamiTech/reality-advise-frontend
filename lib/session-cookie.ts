@@ -46,9 +46,10 @@ export function parseSession(raw: string | undefined, now = Date.now()): Session
 }
 
 /** Only allow same-area relative paths, so `?next=` can't become an open redirect. */
-export function safeNext(next: unknown, role: Role): string {
+export function safeNext(next: unknown, role: Role, isAdmin = false): string {
   const home = homePath[role];
   if (typeof next !== "string" || next.startsWith("//") || next.includes("\\")) return home;
+  if (isAdmin && (next === "/admin" || next.startsWith("/admin/"))) return next;
   if (next === home || next.startsWith(`${home}/`)) {
     return next === loginPath[role] ? home : next;
   }

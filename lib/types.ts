@@ -14,6 +14,7 @@ export type SessionUser = {
   email: string;
   role: Role;
   designation?: Designation;
+  isAdmin?: boolean;
 };
 
 /** The manager an executive reports to (there are no teams). */
@@ -34,7 +35,7 @@ export type Executive = {
 };
 
 /** Managers never have a manager of their own. */
-export type Manager = Omit<Executive, "role"> & { role: "MANAGER" };
+export type Manager = Omit<Executive, "role"> & { role: "MANAGER"; isAdmin?: boolean };
 export type ManagerDetail = Manager & { executives: Executive[] };
 
 /** Raw login payload: executives come back with role `SALES`. */
@@ -68,8 +69,10 @@ export type LeadImport = { importId: string; status: LeadImportStatus; summary: 
 
 export const idleState: FormState = { status: "idle" };
 
-export const LEAD_STATUSES = ["PENDING_ASSIGNMENT", "INCOMING", "RINGING", "CONNECTED", "CLOSED", "LOST", "BROKER"] as const;
+export const LEAD_STATUSES = ["PENDING_ASSIGNMENT", "INCOMING", "PRE_CONNECT", "RINGING", "CONNECTED", "NOT_CONNECTED", "HOLD", "CLOSED", "LOST", "INVALID", "BROKER"] as const;
 export type LeadStatus = (typeof LEAD_STATUSES)[number];
+/** User-selectable statuses. PENDING_ASSIGNMENT is a system routing state. */
+export const LEAD_STATUS_OPTIONS = LEAD_STATUSES.filter((status) => status !== "PENDING_ASSIGNMENT");
 export const LEAD_SOURCES = ["99ACRES", "MAGICBRICKS", "MANUAL"] as const;
 export type LeadSource = (typeof LEAD_SOURCES)[number];
 export const SOURCE_LABEL: Record<string, string> = { MAGICBRICKS: "Magicbricks", "99ACRES": "99acres", MANUAL: "Manual" };
@@ -164,7 +167,7 @@ export type HistoryEntry = Omit<Lead, "customer" | "property" | "assignedExecuti
   assignedExecutive: { id?: string; name: string } | null;
 };
 
-export type ActivityType = "LEAD_RECEIVED" | "ASSIGNED" | "SLA_STARTED" | "STATUS_CHANGED" | "SLA_BREACHED" | "AUTO_REASSIGNED";
+export type ActivityType = "LEAD_RECEIVED" | "ASSIGNED" | "SLA_STARTED" | "STATUS_CHANGED" | "SLA_BREACHED" | "AUTO_REASSIGNED" | "COMMENT_ADDED";
 export type ActivityEntry = {
   id: string;
   type: ActivityType;

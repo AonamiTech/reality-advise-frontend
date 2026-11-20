@@ -25,6 +25,9 @@ export const listManagerLeads = (filters: ManagerLeadFilters = {}) => m<Lead[]>(
 
 export const getManagerLead = cache((id: string) => m<LeadDetail>(`/manager/leads/${encodeURIComponent(id)}`));
 
+export const setManagerLeadStatus = (id: string, status: string) =>
+  m<Lead>(`/manager/leads/${encodeURIComponent(id)}/status`, { method: "PATCH", body: { status } });
+
 export const assignLeadAsManager = (id: string, executiveId: string) =>
   m<Lead>(`/manager/leads/${encodeURIComponent(id)}/assign`, { method: "PATCH", body: { executiveId } });
 

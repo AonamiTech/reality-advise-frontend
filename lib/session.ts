@@ -12,7 +12,8 @@ export async function getSession(): Promise<Session | null> {
 /** Use in layouts and pages. Redirects to the right login screen when the session is missing or for another role. */
 export async function requireSession(role: Role): Promise<Session> {
   const session = await getSession();
-  if (!session || session.user.role !== role) redirect(loginPath[role]);
+  const allowed = session && (session.user.role === role || (role === "ADMIN" && session.user.isAdmin === true));
+  if (!allowed) redirect(loginPath[role]);
   return session;
 }
 
